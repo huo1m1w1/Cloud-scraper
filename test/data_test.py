@@ -2,30 +2,41 @@ import unittest
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-
 import unittest
-from unittest.mock import MagicMock
-from your_module import NFT_scraper
+from unittest.mock import patch, MagicMock, Mock
+from pandas.testing import assert_frame_equal
+from selenium.webdriver import Chrome
+from selenium.webdriver.chrome.service import Service as Chrome
+from selenium.webdriver import Chrome as ChromeDriver
+import sys
+import os
 
-class NFTScraperTestCase(unittest.TestCase):
-    def setUp(self):
-        self.scraper = NFT_scraper()
+# Add the project root directory to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from src.data_scraping import NFTScraper
+
+
+class TestNFTScraper(unittest.TestCase):
+    @patch.object(ChromeDriver, "get")
+    @patch.object(ChromeDriver, "execute_script")
+    def setUp(self, mock_execute_script, mock_get):
+        self.scraper = NFTScraper()
+        self.scraper.driver = ChromeDriver(service=Chrome())
+        mock_get.return_value = None
+        self.mock_execute_script = mock_execute_script
 
     def tearDown(self):
         self.scraper.driver.quit()
 
-    def test_initialization(self):
-        self.assertIsInstance(self.scraper.driver, MagicMock)
-        self.assertEqual(self.scraper.driver.get.call_count, 1)
-        self.assertEqual(
-            self.scraper.driver.get.call_args[0][0], "chrome://settings/"
+    @patch("src.data_scraping.NFTScraper.collect_screen_data")
+    @patch.object(ChromeDriver, "get")
+    def test_initialization(self, mock_get, mock_collect_screen_data):
+        self.assertIsInstance(self.scraper.driver, ChromeDriver)
+        self.mock_execute_script.assert_called_once_with(
+            "chrome.settingsPrivate.setDefaultZoom(0.25);"
         )
-        self.assertEqual(self.scraper.driver.execute_script.call_count, 1)
-        self.assertEqual(
-            self.scraper.driver.execute_script.call_args[0][0],
-            "chrome.settingsPrivate.setDefaultZoom(0.25);",
-        )
+        mock_get.assert_called_once_with("chrome://settings/")
         expected_columns = [
             "Rank",
             "Collection",
@@ -37,6 +48,8 @@ class NFTScraperTestCase(unittest.TestCase):
             "Items",
         ]
         self.assertEqual(list(self.scraper.table.columns), expected_columns)
+
+
 
 if __name__ == "__main__":
     unittest.main()
