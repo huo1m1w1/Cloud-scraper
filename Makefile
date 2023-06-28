@@ -8,7 +8,7 @@ format:
 	black . 
 
 lint: 	
-	pylint --disable=R,C src/data_scraper.py  
+	pylint --extension-pkg-whitelist='pydantic' --disable=R,C src/data_scraper.py  
 
 all: install lint test
 
