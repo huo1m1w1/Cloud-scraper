@@ -1,5 +1,5 @@
 import time
-import asyncio
+# import asyncio
 from pydantic import BaseModel
 import pandas as pd
 from selenium import webdriver
@@ -11,7 +11,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from typing import List
+# from typing import List
 
 
 class NFTData(BaseModel):
