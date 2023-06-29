@@ -13,73 +13,84 @@ import os
 
 # Add the project root directory to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 from src.data_scraping import NFTScraper
 
 
 class TestNFTScraper(unittest.TestCase):
-    @patch.object(ChromeDriver, "get")
-    @patch.object(ChromeDriver, "execute_script")
-    def setUp(self, mock_execute_script, mock_get):
+
+    def setUp(self):
         self.scraper = NFTScraper()
-        self.scraper.driver = ChromeDriver(service=Chrome())
-        mock_get.return_value = None
-        self.mock_execute_script = mock_execute_script
 
     def tearDown(self):
         self.scraper.driver.quit()
 
-    @patch("src.data_scraping.NFTScraper.collect_screen_data")
-    @patch.object(ChromeDriver, "get")
-    def test_initialization(self, mock_get, mock_collect_screen_data):
-        self.assertIsInstance(self.scraper.driver, ChromeDriver)
-        self.mock_execute_script.assert_called_once_with(
-            "chrome.settingsPrivate.setDefaultZoom(0.25);"
-        )
-        mock_get.assert_called_once_with("chrome://settings/")
-        expected_columns = [
-            "Rank",
-            "Collection",
-            "Volume",
-            "24h %",
-            "7d %",
-            "Floor Price",
-            "Owners",
-            "Items",
-        ]
-        self.assertEqual(list(self.scraper.table.columns), expected_columns)
-    @patch("src.data_scraping.NFTScraper.collect_screen_data")
-    def test_extract_text_from_data(self, mock_collect_screen_data):
-        element = Mock()
-        element.text = "1\nCollection 1\n100\n\n0.1\n50\n50%\n10"
-        mock_collect_screen_data.return_value = [element]
-        data = self.scraper.extract_text_from_data([element])
-        expected_data = ["1", "Collection 1", "100", "", "0.1", "50", "50%", "10"]
-        self.assertEqual(data, expected_data)
+    @patch('NFTScraper.scrape_data')
+    @patch('src.data_scraping.asyncio.run')
+    def test_main(self, mock_run, mock_scrape_data):
+        pages_of_scraping = 2
+        self.scraper.scrape_data = MagicMock()
+        mock_run.return_value = None
 
-    @patch("src.data_scraping.NFTScraper.slice_table_data")
-    def test_convert_row_data_to_table(self, mock_slice_table_data):
-        mock_slice_table_data.return_value = [
-            ["1", "Collection 1", "100", "+10%", "0.1", "50", "50%", "10", "25%", "20"],
-            ["2", "Collection 2", "200", "-5%", "0.2", "30", "40%", "8", "20%", "15"],
-        ]
-        data = self.scraper.convert_row_data_to_table(
-            mock_slice_table_data.return_value
-        )
-        expected_rank = 1
-        expected_collection = "Collection 1"
-        expected_shape = (2, 10)
+        self.scraper.main(pages_of_scraping)
 
-        self.assertEqual(int(data.iloc[0]["Rank"]), expected_rank)
-        self.assertEqual(data.iloc[0]["Collection"], expected_collection)
-        self.assertEqual(data.shape, expected_shape)
+        mock_run.assert_called_once_with(self.scraper.scrape_data(pages_of_scraping))
+        self.scraper.scrape_data.assert_called_once_with(pages_of_scraping)
 
-    @patch("src.data_scraping.NFTScraper.collect_screen_data")
-    def test_filling_missing_data(self, mock_collect_screen_data):
-        data = ["1", "Collection 1", "100", "", "0.1", "50", "50%", "10"]
-        expected_data = ["1", "Collection 1", "100", "", "0.1", "50", "50%", "10"]
-        self.scraper.filling_missing_data(data)
-        self.assertEqual(data, expected_data)
+    @patch('src.data_scraping.time.sleep')
+    @patch('src.data_scraping.Keys')
+    @patch('src.data_scraping.NFTScraper.driver')
+    def test_scrolling_down_to_bottom(self, mock_driver, mock_keys, mock_sleep):
+        mock_html = mock_driver.find_element.return_value
+        mock_keys.END = 'END'
+
+        self.scraper.scrolling_down_to_bottom()
+
+        mock_driver.find_element.assert_called_once_with(self.scraper.By.TAG_NAME, 'html')
+        mock_html.send_keys.assert_called_once_with(mock_keys.END)
+        mock_sleep.assert_called_once_with(1)
+
+    @patch('src.data_scraping.wait')
+    def test_click_button_successful(self, mock_wait):
+        mock_button = mock_wait.until.return_value
+        mock_button.click.return_value = None
+
+        result = self.scraper.click_button('xpath')
+
+        mock_wait.until.assert_called_once_with(self.scraper.EC.element_to_be_clickable.return_value)
+        mock_button.click.assert_called_once_with()
+        self.assertTrue(result)
+
+    @patch('src.data_scraping.time.sleep')
+    @patch('NFTScraper.wait')
+    def test_click_button_unsuccessful(self, mock_wait, mock_sleep):
+        mock_wait.until.side_effect = [TimeoutException]
+        mock_sleep.return_value = None
+
+        result = self.scraper.click_button('xpath')
+
+        mock_wait.until.assert_called_once_with(self.scraper.EC.element_to_be_clickable.return_value)
+        self.assertFalse(result)
+        mock_sleep.assert_called_once_with(1)
+
+    def test_concatenate_table(self):
+        table1 = MagicMock()
+        table2 = MagicMock()
+        pd.concat.return_value = 'concatenated_table'
+
+        result = self.scraper.concatenate_table(table1, table2)
+
+        pd.concat.assert_called_once_with([table1, table2])
+        self.assertEqual(result, 'concatenated_table')
+
+    def test_delete_duplicate_rows(self):
+        rows = MagicMock()
+        rows.drop_duplicates.return_value = 'duplicated_rows'
+
+        result = self.scraper.delete_duplicate_rows(rows)
+
+        rows.drop_duplicates.assert_called_once_with(subset=['rank'])
+        self.assertEqual(result, 'duplicated_rows')
+
 
 
 if __name__ == "__main__":
