@@ -14,7 +14,7 @@ import tracemalloc
 tracemalloc.start()
 # Add the project root directory to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from src.data_scraper import NFTScraper, main
+from src.data_scraper import NFTScraper
 
 
 class CustomException(Exception):
@@ -40,8 +40,14 @@ class NFTScraperTest(unittest.TestCase):
             element = await self.wait.until(EC.presence_of_element_located((By.XPATH, self.scraper.XPATH)))
             screen_data = element.text  # Replace with the logic to extract the desired screen data
             return screen_data
+        except TimeoutException as timeout_error:
+            print(f"Timeout occurred: {str(timeout_error)}")
+        except NoSuchElementException as element_error:
+            print(f"Element not found: {str(element_error)}")
+        except StaleElementReferenceException as stale_error:
+            print(f"Stale element reference: {str(stale_error)}")
         except Exception as e:
-            print(f"Error occurred: {str(e)}")
+            print(f"Error occurred: {str(e)}")        
 
     async def test_collect_screen_data(self):
         await self.scraper.driver.get(self.scraper.URL)
