@@ -1,5 +1,7 @@
+"""Python scraper to collect NFT data and image from opensea 
+"""
 import time
-# import asyncio
+import asyncio
 from pydantic import BaseModel
 import pandas as pd
 from selenium import webdriver
@@ -8,10 +10,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException
+from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import StaleElementReferenceException
+
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-# from typing import List
 
 
 class NFTData(BaseModel):
@@ -28,13 +32,14 @@ class NFTData(BaseModel):
 
 
 class NFTScraper:
+    """Class for scraping NFT data from OpenSea."""
     URL = "https://opensea.io/rankings?sortBy=total_volume"
     XPATH = '//*[@id="main"]/div/div/div[3]/div/div[4]'
 
     def __init__(self):
         """Prepare selenium chrome webdriver for scraping."""
         options = Options()
-        # options.add_argument("--headless")
+        options.add_argument("--headless")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--window-size=1920x1080")
@@ -50,7 +55,7 @@ class NFTScraper:
     async def collect_screen_data(self, xpath):
         """Collect dynamic website data from the current screen."""
         try:
-            elements = await self.wait.until(
+            elements = self.wait.until(
                 EC.presence_of_all_elements_located((By.XPATH, xpath))
                 )
             return elements
@@ -96,7 +101,13 @@ class NFTScraper:
             button.click()
             time.sleep(1)
             return True
-        except NoSuchElementException:
+        except (
+            NoSuchElementException,
+            TimeoutException,
+            StaleElementReferenceException,
+            ElementNotInteractableException,
+            AttributeError
+            ):
             return False
 
     def concatenate_table(self, table1, table2):
@@ -106,3 +117,55 @@ class NFTScraper:
     def delete_duplicate_rows(self, rows):
         """Delete duplicate rows."""
         return rows.drop_duplicates(subset=["rank"])
+
+    async def scrape_data(self, pages_of_scraping):
+        """Scrape NFT data from the website."""
+        self.driver.get(NFTScraper.URL)
+        await asyncio.sleep(3)
+        xpath = NFTScraper.XPATH
+        for pages in range(pages_of_scraping):
+            list_of_text = []
+            tasks = []
+
+            for i in range(4):
+                task = asyncio.create_task(self.collect_screen_data(xpath))
+                tasks.append(task)
+            elements_list = await asyncio.gather(*tasks)
+            for elements in elements_list:
+
+                text = self.extract_text_from_data(elements)
+                list_of_text += text
+                self.scrolling_screen_down(3000)
+
+                await asyncio.sleep(1.5)
+
+            self.filling_missing_data(list_of_text)
+            row = self.slice_table_data(list_of_text)
+            table = self.convert_row_data_to_table(row)
+            table["rank"] = table["rank"].astype("int")
+            table.sort_values(by=["rank"], inplace=True)
+            table = self.delete_duplicate_rows(table)
+
+            # Write table to CSV using a context manager
+            with open("output.csv", mode="a", newline="") as f:
+                table.to_csv(f, index=False, header=False)
+
+            self.click_button("//*[@id='main']/div/div[2]/button[2]")
+
+            xpath = '//*[@id="main"]/div/div[1]/div[3]/div/div[4]'
+
+
+async def main(pages_of_scraping):
+    """Main function to execute the scraping process."""
+    scraper = NFTScraper()
+    await scraper.scrape_data(pages_of_scraping)
+    scraper.driver.quit()
+
+
+if __name__ == "__main__":
+    pages_of_scraping = 2  # number of pages to scrape
+    asyncio.run(main(pages_of_scraping))
+
+
+
+
