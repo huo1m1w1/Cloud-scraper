@@ -9,7 +9,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
+# from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
+from selenium.common.exceptions import *
 import tracemalloc
 tracemalloc.start()
 # Add the project root directory to the Python path
@@ -45,9 +46,7 @@ class NFTScraperTest(unittest.TestCase):
         except NoSuchElementException as element_error:
             print(f"Element not found: {str(element_error)}")
         except StaleElementReferenceException as stale_error:
-            print(f"Stale element reference: {str(stale_error)}")
-        except Exception as e:
-            print(f"Error occurred: {str(e)}")        
+            print(f"Stale element reference: {str(stale_error)}")   
 
     async def test_collect_screen_data(self):
         await self.scraper.driver.get(self.scraper.URL)
