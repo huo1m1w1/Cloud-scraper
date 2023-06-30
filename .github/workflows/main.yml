@@ -32,14 +32,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m venv scraper
-          source scraper/bin/activate
           make install
           
-      - name: Verify Pylint
-        run: | 
-          pip install pylint
-          pylint --version
+#       - name: Verify Pylint
+#         run: | 
+#           pip install pylint
+#           pylint --version
   
       - name: Lint data_scraper.py
         run: |
