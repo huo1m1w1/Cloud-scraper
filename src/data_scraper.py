@@ -155,7 +155,7 @@ class NFTScraper:
             xpath = '//*[@id="main"]/div/div[1]/div[3]/div/div[4]'
 
 
-async def main(pages_of_scraping):
+async def main(pages_of_scraping=2):
     """Main function to execute the scraping process."""
     scraper = NFTScraper()
     await scraper.scrape_data(pages_of_scraping)
@@ -163,8 +163,8 @@ async def main(pages_of_scraping):
 
 
 if __name__ == "__main__":
-    pages_of_scraping = 2  # number of pages to scrape
-    asyncio.run(main(pages_of_scraping))
+    pos = 2  # number of pages to scrape
+    asyncio.run(main(pos))
 
 
 
