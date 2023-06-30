@@ -30,17 +30,22 @@ jobs:
       - name: Install dependencies
         run: |
           make install
-
-      - name: Lint with pylint
+      - name: Lint data_scraper.py
         run: |
-          make lint
+          make lint_data_scraper
 
-      - name: Test with unittest
+      - name: Lint data_test.py
         run: |
-          make test
+          make lint_data_test
 
-      - name: Format code
+      - name: Test data_scraper.py
         run: |
-          make format
+          make test_data_scraper
+
+      - name: Test data_test.py
+        run: |
+          make test_data_test
+
+
           
     
