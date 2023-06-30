@@ -118,12 +118,12 @@ class NFTScraper:
         """Delete duplicate rows."""
         return rows.drop_duplicates(subset=["rank"])
 
-    async def scrape_data(self, pages_of_scraping):
+    async def scrape_data(self, pos):
         """Scrape NFT data from the website."""
         self.driver.get(NFTScraper.URL)
         await asyncio.sleep(3)
         xpath = NFTScraper.XPATH
-        for pages in range(pages_of_scraping):
+        for pages in range(pos):
             list_of_text = []
             tasks = []
 
