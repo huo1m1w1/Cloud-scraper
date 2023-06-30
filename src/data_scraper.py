@@ -118,16 +118,16 @@ class NFTScraper:
         """Delete duplicate rows."""
         return rows.drop_duplicates(subset=["rank"])
 
-    async def scrape_data(self, pos):
+    async def scrape_data(self, pos=2):
         """Scrape NFT data from the website."""
         self.driver.get(NFTScraper.URL)
         await asyncio.sleep(3)
         xpath = NFTScraper.XPATH
-        for pages in range(pos):
+        for _ in range(pos):
             list_of_text = []
             tasks = []
 
-            for i in range(4):
+            for _ in range(4):
                 task = asyncio.create_task(self.collect_screen_data(xpath))
                 tasks.append(task)
             elements_list = await asyncio.gather(*tasks)
@@ -147,7 +147,7 @@ class NFTScraper:
             table = self.delete_duplicate_rows(table)
 
             # Write table to CSV using a context manager
-            with open("output.csv", mode="a", newline="") as f:
+            with open("output.csv", mode="a", newline="", encoding="utf-8") as f:
                 table.to_csv(f, index=False, header=False)
 
             self.click_button("//*[@id='main']/div/div[2]/button[2]")
