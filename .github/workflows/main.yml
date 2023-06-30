@@ -35,6 +35,10 @@ jobs:
           python -m venv scraper
           source scraper/bin/activate
           make install
+          
+      - name: Verify Pylint
+        run: pylint --version
+  
       - name: Lint data_scraper.py
         run: |
           make lint_data_scraper
