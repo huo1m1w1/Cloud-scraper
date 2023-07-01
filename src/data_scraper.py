@@ -52,15 +52,15 @@ class NFTScraper:
         self.table = pd.DataFrame(columns=NFTData.__fields__.keys())
         self.wait = WebDriverWait(self.driver, 10)
 
-    async def collect_screen_data(self, xpath):
+    async def collect_screen_data(self):
         """Collect dynamic website data from the current screen."""
         try:
             elements = self.wait.until(
-                EC.presence_of_all_elements_located((By.XPATH, xpath))
+                EC.presence_of_all_elements_located((By.XPATH, NFTScraper.XPATH))
                 )
             return elements
         except TimeoutException:
-            print(f"Timed out waiting for elements at XPath: {xpath}")
+            print(f"Timed out waiting for elements at XPath: {NFTScraper.XPATH}")
             return []
 
     def extract_text_from_data(self, data: any):
@@ -122,13 +122,12 @@ class NFTScraper:
         """Scrape NFT data from the website."""
         self.driver.get(NFTScraper.URL)
         await asyncio.sleep(3)
-        xpath = NFTScraper.XPATH
         for _ in range(pages_of_scraping):
             list_of_text = []
             tasks = []
 
             for _ in range(4):
-                task = asyncio.create_task(self.collect_screen_data(xpath))
+                task = asyncio.create_task(self.collect_screen_data())
                 tasks.append(task)
             elements_list = await asyncio.gather(*tasks)
             for elements in elements_list:
