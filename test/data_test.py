@@ -9,8 +9,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-# from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
-from selenium.common.exceptions import *
+from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
+from selenium.common.exceptions import NoSuchElementException
 import tracemalloc
 tracemalloc.start()
 # Add the project root directory to the Python path
@@ -52,7 +52,7 @@ class NFTScraperTest(unittest.TestCase):
         await self.scraper.driver.get(self.scraper.URL)
         result = await self.collect_screen_data(self.scraper.XPATH)
         print(result)
-        self.assertIsNotNone(result)
+        self.assertIsNotNone(result, "Test value is none.")
         # self.assertGreater(len(result), 0)
         # Process the result or perform assertions
 
