@@ -5,7 +5,8 @@ test_data_scraper:
 	python -m unittest -v test.data_test.Testing
 
 test_data_test:
-	python -m unittest -v test.data_test
+	cd test
+	python -m unittest -v data_test.Testing
 
 format: 	
 	black . 
