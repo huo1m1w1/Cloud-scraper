@@ -182,10 +182,13 @@ class NFTScraperTest(unittest.TestCase):
                 with patch.object(self.scraper, 'extract_text_from_data') as mock_extract_text_from_data:
                     with patch.object(self.scraper, 'scrolling_screen_down') as mock_scrolling_screen_down:
                         with patch.object(self.scraper, 'click_button') as mock_click_button:
-                            try:
-                                asyncio.run(self.scraper.scrape_data(2))
-                            except CustomException:
-                                pass
+                            with patch.object(self.scraper, 'convert_row_data_to_table') as mock_convert_row_data_to_table:
+                                with patch.object(self.scraper, 'delete_duplicate_rows') as mock_delete_duplicate_rows:
+ 
+                                    try:
+                                        asyncio.run(self.scraper.scrape_data(2))
+                                    except CustomException:
+                                        pass
 
         mock_get.assert_called_once_with(NFTScraper.URL)
         mock_collect_screen_data.assert_called_with()
@@ -193,10 +196,7 @@ class NFTScraperTest(unittest.TestCase):
         self.assertEqual(mock_scrolling_screen_down.call_count, 8)
         mock_scrolling_screen_down.assert_called()
         self.assertEqual(mock_click_button.call_count, 2)
-
-        mock_convert_row_data_to_table = MagicMock()
-        mock_delete_duplicate_rows = MagicMock()
-        self.assertEqual(mock_convert_row_data_to_table.call_count, 2)
+        self.assertEqual(mock_convert_row_data_to_table.call_count, 2)  # Verify the call count
         self.assertEqual(mock_delete_duplicate_rows.call_count, 2)
 
     def test_close_driver(self):
