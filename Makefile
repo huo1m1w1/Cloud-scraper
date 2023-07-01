@@ -5,8 +5,7 @@ test_data_scraper:
 	python -m unittest -v test.data_test.Testing
 
 test_data_test:
-	cd test
-	python -m unittest discover -v -s . -p "data_test.py"
+	python -m unittest discover -v -s test -p "*_test.py"
 
 format: 	
 	black . 
