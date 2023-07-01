@@ -151,7 +151,7 @@ class NFTScraper:
 
             self.click_button("//*[@id='main']/div/div[2]/button[2]")
 
-            xpath = '//*[@id="main"]/div/div[1]/div[3]/div/div[4]'
+            NFTScraper.XPATH = '//*[@id="main"]/div/div[1]/div[3]/div/div[4]'
 
 
 async def main(pages_of_scraping=2):
