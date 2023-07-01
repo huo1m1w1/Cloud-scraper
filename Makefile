@@ -2,10 +2,10 @@ install:
 	pip install -r requirements.txt  
 
 test_data_scraper: 	
-	python -m unittest -v test/data_test.Testing
+	python -m unittest -v test.data_test.Testing
 
 test_data_test:
-	python -m unittest -v test/data_test
+	python -m unittest -v test.data_test
 
 format: 	
 	black . 
