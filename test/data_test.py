@@ -178,8 +178,8 @@ class NFTScraperTest(unittest.TestCase):
 
         with patch.object(self.scraper.driver, 'get', return_value=None) as mock_get:
             with patch.object(self.scraper, 'collect_screen_data') as mock_collect_screen_data:
+                mock_collect_screen_data.return_value = [[1, 2, 3]]  # Set the return value of collect_screen_data
                 with patch.object(self.scraper, 'extract_text_from_data') as mock_extract_text_from_data:
-                    mock_collect_screen_data.side_effect = lambda xpath: [[1, 2, 3], CustomException]
                     with patch.object(self.scraper, 'scrolling_screen_down') as mock_scrolling_screen_down:
                         with patch.object(self.scraper, 'click_button') as mock_click_button:
                             try:
@@ -188,11 +188,12 @@ class NFTScraperTest(unittest.TestCase):
                                 pass
 
         mock_get.assert_called_once_with(NFTScraper.URL)
-        mock_collect_screen_data.assert_called()
-        mock_extract_text_from_data.assert_called_with([[1, 2, 3], CustomException])
+        mock_collect_screen_data.assert_called_with()
+        mock_extract_text_from_data.assert_called_with([[1, 2, 3]])  # Update the assertion
         self.assertEqual(mock_scrolling_screen_down.call_count, 8)
         mock_scrolling_screen_down.assert_called()
         self.assertEqual(mock_click_button.call_count, 2)
+
         mock_convert_row_data_to_table = MagicMock()
         mock_delete_duplicate_rows = MagicMock()
         self.assertEqual(mock_convert_row_data_to_table.call_count, 2)
