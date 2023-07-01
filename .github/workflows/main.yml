@@ -47,6 +47,9 @@ jobs:
         run: |
           make lint_data_test
 
+      - name: Print PYTHONPATH
+        run: echo $PYTHONPATH
+
       - name: Test data_test.py
         run: |
           make test_data_test
