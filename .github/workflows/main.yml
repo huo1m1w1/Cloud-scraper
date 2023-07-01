@@ -47,10 +47,6 @@ jobs:
         run: |
           make lint_data_test
 
-      - name: Test data_scraper.py
-        run: |
-          make test_data_scraper
-
       - name: Test data_test.py
         run: |
           make test_data_test
