@@ -50,15 +50,15 @@ class NFTScraperTest(unittest.TestCase):
 
     async def test_collect_screen_data(self):
         await self.scraper.driver.get(self.scraper.URL)
-        result = await self.collect_screen_data(self.scraper.XPATH)
+        result = await self.collect_screen_data()
         print(result)
-        self.assertIsNotNone(result, "Test value is none.")
+        self.assertIsNotNone(result, msg="Test value is none.")
         # self.assertGreater(len(result), 0)
         # Process the result or perform assertions
 
     def test_collect_screen_data_wrapper(self):
         self.scraper.driver.get(self.scraper.URL)
-        result = self.scraper.collect_screen_data(self.scraper.XPATH)
+        result = self.scraper.collect_screen_data()
         print(result)
         self.assertIsNotNone(result)
 
